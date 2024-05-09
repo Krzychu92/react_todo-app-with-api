@@ -9,13 +9,13 @@ import {
   updateCompletedTodo,
   updateTitleTodo,
 } from './api/todos';
-import { ToDoHeader } from './components/todoapp_header';
-import { TodoList } from './components/todoapp_todolist';
+import { ToDoHeader } from './components/Header/todoapp_header';
+import { TodoList } from './components/TodoList/todoapp_todolist';
 import { Todo } from './types/Todo';
 import { Status } from './types/Status';
 import { ErrorType } from './types/ErrorType';
-import { Errors } from './components/todoapp_error';
-import { Footer } from './components/footer';
+import { Errors } from './components/Error/Error';
+import { Footer } from './components/Footer/footer';
 
 type TempTodo = {
   id: number;
@@ -189,14 +189,16 @@ export const App: React.FC = () => {
 
     const updatedTodo = { ...todoToUpdate, completed: !todoToUpdate.completed };
 
-    updateCompletedTodo(id, updatedTodo).then(() => {
-      const updatedTasks = tasks.map(todo =>
-        todo.id === id ? updatedTodo : todo,
-      );
+    updateCompletedTodo(id, updatedTodo)
+      .then(() => {
+        const updatedTasks = tasks.map(todo =>
+          todo.id === id ? updatedTodo : todo,
+        );
 
-      setTasks(updatedTasks);
-      setIsUpdating([]);
-    });
+        setTasks(updatedTasks);
+        setIsUpdating([]);
+      })
+      .catch(() => setErrorMessage(errorType.updateTodo));
   };
 
   const handleEdit = (id: number | null) => {

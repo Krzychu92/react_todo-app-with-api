@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import { Status } from '../types/Status';
+import { Status } from '../../types/Status';
 
 type Props = {
   setStatus: (statusType: Status) => void;
