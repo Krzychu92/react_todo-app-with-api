@@ -198,15 +198,16 @@ export const App: React.FC = () => {
       return;
     }
 
-    const updatedTodo = { ...todoToUpdate, completed: !todoToUpdate.completed };
+    const updatedTodo = {
+      ...todoToUpdate,
+      completed: !todoToUpdate.completed,
+    };
 
     updateCompletedTodo(id, updatedTodo)
       .then(() => {
-        const updatedTasks = tasks.map(todo =>
-          todo.id === id ? updatedTodo : todo,
-        );
-
-        setTasks(updatedTasks);
+        setTasks(prevState => {
+          return prevState.map(todo => (todo.id === id ? updatedTodo : todo));
+        });
         setIsUpdating([]);
       })
       .catch(() => {
