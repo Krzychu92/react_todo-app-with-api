@@ -66,22 +66,21 @@ export const TodoList = ({
       todo.id === id ? updatedTodo : todo,
     );
 
-    setTasks(updatedTasks);
-
     if (newTitle.trim() === '') {
       deleteTask(id);
     }
 
     updateTitleTodo(id, updatedTodo)
       .then(() => {
+        setTasks(updatedTasks);
         setIsUpdating([]);
         setCanEdit(false);
       })
       .catch(() => {
         handleError(errorType.updateTodo);
-        if (newTitle.trim() === '') {
-          setCanEdit(true);
-        }
+        // if (newTitle.trim() === '') {
+        //   setCanEdit(true);
+        // }
 
         setCanEdit(true);
         editRef.current = id;
