@@ -78,9 +78,6 @@ export const TodoList = ({
       })
       .catch(() => {
         handleError(errorType.updateTodo);
-        // if (newTitle.trim() === '') {
-        //   setCanEdit(true);
-        // }
 
         setCanEdit(true);
         editRef.current = id;
@@ -98,21 +95,28 @@ export const TodoList = ({
   const handleSubmitNewTitle = (id: number, title: string) => {
     const originalTodo = tasks.find(todo => todo.id === id);
 
-    if (!originalTodo || originalTodo.title === newTitle.trim()) {
+    if (!originalTodo) {
+      handleError(errorType.found);
+
+      return;
+    }
+
+    const trimmedTitle = title.trim();
+
+    if (originalTodo.title === trimmedTitle) {
+      return;
+    }
+
+    if (!trimmedTitle) {
+      deleteTask(id);
+      setIsSubmitting(false);
+
       return;
     }
 
     setIsSubmitting(true);
     setIsUpdating([id]);
-
-    if (!title.trim()) {
-      deleteTask(id);
-      setIsSubmitting(false);
-
-      return;
-    } else {
-      updateNewTitle(id, title);
-    }
+    updateNewTitle(id, trimmedTitle);
   };
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
