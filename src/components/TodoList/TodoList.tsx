@@ -39,7 +39,7 @@ export const TodoList = ({
   setErrorMessage,
   tasks,
   setIsUpdating,
-  IsSubmitting,
+  // IsSubmitting,
   setIsSubmitting,
   canEdit,
   setCanEdit,
@@ -111,10 +111,7 @@ export const TodoList = ({
       setIsSubmitting(false);
 
       return;
-    }
-
-    // Add a condition to prevent the function from running if it's already submitting
-    if (!IsSubmitting) {
+    } else {
       updateNewTitle(id, title);
     }
   };
