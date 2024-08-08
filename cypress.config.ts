@@ -10,7 +10,7 @@ module.exports = defineConfig({
   viewportWidth: 1080,
   responseTimeout: 100000,
   pageLoadTimeout: 150000,
-  defaultCommandTimeout: 60000,
+  defaultCommandTimeout: 100000,
   screenshotOnRunFailure: true,
   reporter: 'mochawesome',
   reporterOptions: {

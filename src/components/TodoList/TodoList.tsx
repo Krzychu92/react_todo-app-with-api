@@ -136,14 +136,8 @@ export const TodoList = ({
     }
   };
 
-  const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>,
-    id: number,
-  ) => {
-    if (e.key === 'Enter') {
-      handleSubmitNewTitle(id, newTitle);
-      setCanEdit(false);
-    } else if (e.key === 'Escape') {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
       setCanEdit(false);
     }
   };
@@ -220,7 +214,7 @@ export const TodoList = ({
                     handleTitleChange(e)
                   }
                   autoFocus={true}
-                  onKeyDown={e => handleKeyDown(e, id)}
+                  onKeyDown={handleKeyDown}
                 />
               </form>
             ) : (
