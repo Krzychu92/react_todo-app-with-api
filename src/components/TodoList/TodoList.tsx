@@ -2,7 +2,7 @@
 import classNames from 'classnames';
 import { Todo } from '../../types/Todo';
 import { errorType } from '../../types/ErrorType';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { updateTitleTodo } from '../../api/todos';
 
 type Props = {
@@ -12,17 +12,14 @@ type Props = {
   deleteTask: (id: number) => void;
   deletingIds: number[];
   onUpdate: number[];
-  setNewTitle: (title: string) => void;
-  newTitle: string;
   handleError: (error: string) => void;
-  setTasks: (tasks: Todo[]) => void;
-  setErrorMessage: (error: string) => void;
+  onNewTasks: (tasks: Todo[]) => void;
   tasks: Todo[];
   setIsUpdating: (ids: number[]) => void;
   IsSubmitting: boolean;
-  setIsSubmitting: (isSubmitting: boolean) => void;
+  handleIsSubmitting: (isSubmitting: boolean) => void;
   canEdit: boolean;
-  setCanEdit: (canEdit: boolean) => void;
+  onEdit: (canEdit: boolean) => void;
 };
 
 export const TodoList = ({
@@ -32,18 +29,15 @@ export const TodoList = ({
   deleteTask,
   deletingIds,
   onUpdate,
-  setNewTitle,
-  newTitle,
   handleError,
-  setTasks,
-  setErrorMessage,
+  onNewTasks,
   tasks,
   setIsUpdating,
-  // IsSubmitting,
-  setIsSubmitting,
+  handleIsSubmitting,
   canEdit,
-  setCanEdit,
+  onEdit,
 }: Props) => {
+  const [newTitle, setNewTitle] = useState('');
   const editRef = useRef<number | null>(null);
 
   const updateNewTitle = (id: number, newTitl: string) => {
@@ -51,7 +45,7 @@ export const TodoList = ({
     const todoToUpdate = tasks.find(todo => todo.id === id);
 
     if (!todoToUpdate) {
-      setErrorMessage(errorType.found);
+      handleError(errorType.found);
 
       return;
     }
@@ -72,24 +66,24 @@ export const TodoList = ({
 
     updateTitleTodo(id, updatedTodo)
       .then(() => {
-        setTasks(updatedTasks);
+        onNewTasks(updatedTasks);
         setIsUpdating([]);
-        setCanEdit(false);
+        onEdit(false);
       })
       .catch(() => {
         handleError(errorType.updateTodo);
 
-        setCanEdit(true);
+        onEdit(true);
         editRef.current = id;
         const revertedTasks = tasks.map(todo =>
           todo.id === id ? { ...todo, title: todoToUpdate.title } : todo,
         );
 
-        setTasks(revertedTasks);
+        onNewTasks(revertedTasks);
 
         setIsUpdating([]);
       });
-    setIsSubmitting(false);
+    handleIsSubmitting(false);
   };
 
   const handleSubmitNewTitle = (id: number, title: string) => {
@@ -109,12 +103,12 @@ export const TodoList = ({
 
     if (!trimmedTitle) {
       deleteTask(id);
-      setIsSubmitting(false);
+      handleIsSubmitting(false);
 
       return;
     }
 
-    setIsSubmitting(true);
+    handleIsSubmitting(true);
     setIsUpdating([id]);
     updateNewTitle(id, trimmedTitle);
   };
@@ -125,12 +119,12 @@ export const TodoList = ({
 
   const sendTitle = (id: number) => {
     handleSubmitNewTitle(id, newTitle);
-    setCanEdit(false);
+    onEdit(false);
   };
 
   const handleDoubleClick = (id: number, updateTitle: string) => {
     if (!canEdit) {
-      setCanEdit(true);
+      onEdit(true);
       setNewTitle(updateTitle);
       editRef.current = id;
     }
@@ -138,7 +132,7 @@ export const TodoList = ({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
-      setCanEdit(false);
+      onEdit(false);
     }
   };
 

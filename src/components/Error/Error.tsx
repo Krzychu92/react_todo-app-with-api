@@ -2,10 +2,10 @@ import classNames from 'classnames';
 
 type Props = {
   errorMessage: string;
-  setErrorMessage: (value: string) => void;
+  OnErrorClean: () => void;
 };
 
-export const Errors = ({ errorMessage, setErrorMessage }: Props) => {
+export const Errors = ({ errorMessage, OnErrorClean }: Props) => {
   return (
     <div
       data-cy="ErrorNotification"
@@ -21,7 +21,7 @@ export const Errors = ({ errorMessage, setErrorMessage }: Props) => {
         data-cy="HideErrorButton"
         type="button"
         className="delete"
-        onClick={() => setErrorMessage('')}
+        onClick={OnErrorClean}
       />
       {/* show only one message at a time */}
       {errorMessage}

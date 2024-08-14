@@ -6,18 +6,18 @@ type Props = {
   allDone: boolean;
   handleSubmit: (event: { preventDefault: () => void }) => void;
   taskTitle: string;
-  setTaskTitle: (e: string) => void;
   IsSubmitting: boolean;
   inputRef: LegacyRef<HTMLInputElement>;
   taskLengthForButton: number;
+  onNewTitle: (value: string) => void;
 };
 
 export const ToDoHeader = ({
   handleAllCompleted,
   allDone,
+  onNewTitle,
   handleSubmit,
   taskTitle,
-  setTaskTitle,
   IsSubmitting,
   inputRef,
   taskLengthForButton,
@@ -41,7 +41,7 @@ export const ToDoHeader = ({
           type="text"
           className="todoapp__new-todo"
           value={taskTitle}
-          onChange={event => setTaskTitle(event.target.value)}
+          onChange={event => onNewTitle(event.target.value)}
           placeholder="What needs to be done?"
           disabled={IsSubmitting}
           ref={inputRef}

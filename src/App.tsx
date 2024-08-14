@@ -10,11 +10,11 @@ import {
 } from './api/todos';
 import { ToDoHeader } from './components/Header/Header';
 import { TodoList } from './components/TodoList/TodoList';
+import { Footer } from './components/Footer/Footer';
 import { Todo } from './types/Todo';
 import { Status } from './types/Status';
 import { ErrorType } from './types/ErrorType';
 import { Errors } from './components/Error/Error';
-import classNames from 'classnames';
 
 type TempTodo = {
   id: number;
@@ -33,7 +33,6 @@ export const App: React.FC = () => {
   const [tempTodo, setTempTodo] = useState<TempTodo | null>(null);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [isUpdating, setIsUpdating] = useState<number[] | []>([]);
-  const [newTitle, setNewTitle] = useState('');
   const [canEdit, setCanEdit] = useState(false);
   const completedTodos = tasks?.filter(todo => todo.completed);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -46,7 +45,6 @@ export const App: React.FC = () => {
     deleteTask: 'Unable to delete a todo',
     updateTodo: 'Unable to update a todo',
   };
-
   const taskLeft = tasks?.filter(
     task => !task.completed && task.id != 0,
   ).length;
@@ -55,6 +53,26 @@ export const App: React.FC = () => {
     setTimeout(() => {
       inputRef.current?.focus();
     }, 0);
+  };
+
+  const handleStatus = (value: Status) => {
+    setStatus(value);
+  };
+
+  const handleNewTaskTitle = (eventTarget: string) => {
+    setTaskTitle(eventTarget);
+  };
+
+  const handleSetTasks = (newTasks: Todo[]) => {
+    setTasks(newTasks);
+  };
+
+  const handleIsSubmitting = (isSubmitting: boolean) => {
+    setIsSubmitting(isSubmitting);
+  };
+
+  const handleEdit = (edit: boolean) => {
+    setCanEdit(edit);
   };
 
   const filterTodo: (todos: Todo[], mode: Status) => Todo[] = (todos, mode) => {
@@ -73,6 +91,10 @@ export const App: React.FC = () => {
 
   const handleError: (errorMsg: string) => void = errorMsg => {
     setErrorMessage(errorMsg);
+  };
+
+  const handleErrorClear = () => {
+    setErrorMessage('');
   };
 
   const addNewTodo = async (creatNewTodo: Todo) => {
@@ -158,7 +180,7 @@ export const App: React.FC = () => {
     deleteTodo(id)
       .then(() => {
         if (canEdit === true) {
-          setCanEdit(false);
+          handleEdit(false);
         }
 
         setTasks(currentTodos => currentTodos.filter(todo => todo.id !== id));
@@ -169,7 +191,7 @@ export const App: React.FC = () => {
       })
       .catch(() => {
         if (canEdit === true) {
-          setCanEdit(true);
+          handleEdit(true);
         }
 
         handleError(errorType.deleteTask);
@@ -225,7 +247,7 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => setErrorMessage(''), 3000);
+    const timeoutId = setTimeout(() => handleErrorClear(), 3000);
 
     return () => clearTimeout(timeoutId);
   }, [errorMessage]);
@@ -251,8 +273,8 @@ export const App: React.FC = () => {
           handleAllCompleted={handleAllCompleted}
           allDone={allDone}
           handleSubmit={handleSubmit}
+          onNewTitle={handleNewTaskTitle}
           taskTitle={taskTitle}
-          setTaskTitle={setTaskTitle}
           IsSubmitting={IsSubmitting}
           inputRef={inputRef}
           taskLengthForButton={tasks.length}
@@ -264,79 +286,28 @@ export const App: React.FC = () => {
           deleteTask={deleteTask}
           deletingIds={deletingIds}
           onUpdate={isUpdating}
-          setNewTitle={setNewTitle}
-          newTitle={newTitle}
           handleError={handleError}
-          setTasks={setTasks}
-          setErrorMessage={setErrorMessage}
+          onNewTasks={handleSetTasks}
           tasks={tasks}
           setIsUpdating={setIsUpdating}
           IsSubmitting={IsSubmitting}
-          setIsSubmitting={setIsSubmitting}
+          handleIsSubmitting={handleIsSubmitting}
           canEdit={canEdit}
-          setCanEdit={setCanEdit}
+          onEdit={handleEdit}
         />
 
-        {/* Hide the footer if there are no todos */}
         {tasks.length > 0 && (
-          <footer className="todoapp__footer" data-cy="Footer">
-            <span className="todo-count" data-cy="TodosCounter">
-              {taskLeft} items left
-            </span>
-
-            {/* Active link should have the 'selected' class */}
-            <nav className="filter" data-cy="Filter">
-              <a
-                href="#/"
-                className={classNames('filter__link', {
-                  selected: status === Status.all,
-                })}
-                data-cy="FilterLinkAll"
-                onClick={() => setStatus(Status.all)}
-              >
-                All
-              </a>
-
-              <a
-                href="#/active"
-                className={classNames('filter__link', {
-                  selected: status === Status.active,
-                })}
-                data-cy="FilterLinkActive"
-                onClick={() => setStatus(Status.active)}
-              >
-                Active
-              </a>
-
-              <a
-                href="#/completed"
-                className={classNames('filter__link', {
-                  selected: status === Status.completed,
-                })}
-                data-cy="FilterLinkCompleted"
-                onClick={() => setStatus(Status.completed)}
-              >
-                Completed
-              </a>
-            </nav>
-
-            {/* this button should be disabled if there are no completed todos */}
-            <button
-              type="button"
-              className="todoapp__clear-completed"
-              data-cy="ClearCompletedButton"
-              onClick={() => clearCompleted()}
-              disabled={completedTodos.length == 0}
-            >
-              Clear completed
-            </button>
-          </footer>
+          <Footer
+            onClear={clearCompleted}
+            handleStatus={handleStatus}
+            status={status}
+            taskLeft={taskLeft}
+            completedTodos={completedTodos}
+          />
         )}
       </div>
 
-      {/* DON'T use conditional rendering to hide the notification */}
-      {/* Add the 'hidden' class to hide the message smoothly */}
-      <Errors errorMessage={errorMessage} setErrorMessage={setErrorMessage} />
+      <Errors errorMessage={errorMessage} OnErrorClean={handleErrorClear} />
     </div>
   );
 };
