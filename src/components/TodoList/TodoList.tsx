@@ -4,9 +4,10 @@ import { Todo } from '../../types/Todo';
 import { errorType } from '../../types/ErrorType';
 import { useRef, useState } from 'react';
 import { updateTitleTodo } from '../../api/todos';
+import { Status } from '../../types/Status';
 
 type Props = {
-  filteredTodos: Todo[];
+  status: Status;
   handleCompleted: (id: number) => void;
   tempTodo: Todo | null;
   deleteTask: (id: number) => void;
@@ -16,14 +17,13 @@ type Props = {
   onNewTasks: (tasks: Todo[]) => void;
   tasks: Todo[];
   setIsUpdating: (ids: number[]) => void;
-  IsSubmitting: boolean;
   handleIsSubmitting: (isSubmitting: boolean) => void;
   canEdit: boolean;
   onEdit: (canEdit: boolean) => void;
 };
 
 export const TodoList = ({
-  filteredTodos,
+  status,
   handleCompleted,
   tempTodo,
   deleteTask,
@@ -135,6 +135,20 @@ export const TodoList = ({
       onEdit(false);
     }
   };
+
+  const filterTodo: (todos: Todo[], mode: Status) => Todo[] = (todos, mode) => {
+    switch (mode) {
+      case Status.completed:
+        return todos.filter(task => task.completed);
+      case Status.active:
+        return todos.filter(task => !task.completed);
+      case Status.all:
+      default:
+        return tasks;
+    }
+  };
+
+  const filteredTodos = filterTodo(tasks, status);
 
   return (
     <section className="todoapp__main" data-cy="TodoList">

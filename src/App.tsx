@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { UserWarning } from './UserWarning';
 import {
   USER_ID,
-  addTodo,
   deleteTodo,
   getTodos,
   updateCompletedTodo,
@@ -13,41 +12,25 @@ import { TodoList } from './components/TodoList/TodoList';
 import { Footer } from './components/Footer/Footer';
 import { Todo } from './types/Todo';
 import { Status } from './types/Status';
-import { ErrorType } from './types/ErrorType';
+import { errorType } from './types/ErrorType';
 import { Errors } from './components/Error/Error';
-
-type TempTodo = {
-  id: number;
-  completed: boolean;
-  title: string;
-  userId: number;
-};
 
 export const App: React.FC = () => {
   const [tasks, setTasks] = useState<Todo[]>([]);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [status, setStatus] = useState<Status>(Status.all);
-  const [taskTitle, setTaskTitle] = useState('');
-  const [allDone, setAllDone] = useState(false);
-  const [IsSubmitting, setIsSubmitting] = useState(false);
-  const [tempTodo, setTempTodo] = useState<TempTodo | null>(null);
+  const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [isUpdating, setIsUpdating] = useState<number[] | []>([]);
   const [canEdit, setCanEdit] = useState(false);
+  const [IsSubmitting, setIsSubmitting] = useState(false);
   const completedTodos = tasks?.filter(todo => todo.completed);
   const inputRef = useRef<HTMLInputElement>(null);
+  const taskLeft = tempTodo
+    ? tasks.length - completedTodos.length + 1
+    : tasks.length - completedTodos.length;
 
-  const errorType: ErrorType = {
-    empty: 'Title should not be empty',
-    load: 'Unable to load todos',
-    add: 'Unable to add a todo',
-    found: 'Todo not found',
-    deleteTask: 'Unable to delete a todo',
-    updateTodo: 'Unable to update a todo',
-  };
-  const taskLeft = tasks?.filter(
-    task => !task.completed && task.id != 0,
-  ).length;
+  const areTasksDone = tasks.length === completedTodos.length;
 
   const focusInput = () => {
     setTimeout(() => {
@@ -59,35 +42,13 @@ export const App: React.FC = () => {
     setStatus(value);
   };
 
-  const handleNewTaskTitle = (eventTarget: string) => {
-    setTaskTitle(eventTarget);
-  };
-
   const handleSetTasks = (newTasks: Todo[]) => {
     setTasks(newTasks);
-  };
-
-  const handleIsSubmitting = (isSubmitting: boolean) => {
-    setIsSubmitting(isSubmitting);
   };
 
   const handleEdit = (edit: boolean) => {
     setCanEdit(edit);
   };
-
-  const filterTodo: (todos: Todo[], mode: Status) => Todo[] = (todos, mode) => {
-    switch (mode) {
-      case Status.completed:
-        return todos.filter(task => task.completed);
-      case Status.active:
-        return todos.filter(task => !task.completed);
-      case Status.all:
-      default:
-        return tasks;
-    }
-  };
-
-  const filteredTodos = filterTodo(tasks, status);
 
   const handleError: (errorMsg: string) => void = errorMsg => {
     setErrorMessage(errorMsg);
@@ -97,53 +58,13 @@ export const App: React.FC = () => {
     setErrorMessage('');
   };
 
-  const addNewTodo = async (creatNewTodo: Todo) => {
-    try {
-      setTasks(currentTodos => [...currentTodos, creatNewTodo]);
-      setIsUpdating([0]);
-
-      const newTodo: Todo = await addTodo(creatNewTodo);
-
-      setTasks(currentTodos => {
-        currentTodos.pop();
-
-        return [...currentTodos, newTodo];
-      });
-      setTaskTitle('');
-    } catch {
-      setTasks(currentTodos => {
-        currentTodos.pop();
-
-        return [...currentTodos];
-      });
-      handleError(errorType.add);
-    } finally {
-      setTempTodo(null);
-      setIsSubmitting(false);
-      focusInput();
-    }
+  const handleIsSubmitting = (isSubmitting: boolean) => {
+    setIsSubmitting(isSubmitting);
   };
 
-  const handleSubmit = (event: { preventDefault: () => void }) => {
-    event.preventDefault();
-    const title = taskTitle.trim();
-
-    if (!title) {
-      handleError(errorType.empty);
-
-      return;
-    }
-
-    const newTodo = {
-      title,
-      userId: USER_ID,
-      completed: false,
-      id: 0,
-    };
-
-    setIsSubmitting(true);
-    addNewTodo(newTodo);
-  };
+  // const handleTaskTitle = (event: string) => {
+  //   setTaskTitle(event);
+  // };
 
   const handleAllCompleted = () => {
     const isAllDone = tasks.every(task => task.completed);
@@ -252,14 +173,6 @@ export const App: React.FC = () => {
     return () => clearTimeout(timeoutId);
   }, [errorMessage]);
 
-  useEffect(() => {
-    if (taskLeft > 0) {
-      return setAllDone(false);
-    } else if (taskLeft == 0) {
-      return setAllDone(true);
-    }
-  }, [taskLeft]);
-
   if (!USER_ID) {
     return <UserWarning />;
   }
@@ -271,16 +184,21 @@ export const App: React.FC = () => {
       <div className="todoapp__content">
         <ToDoHeader
           handleAllCompleted={handleAllCompleted}
-          allDone={allDone}
-          handleSubmit={handleSubmit}
-          onNewTitle={handleNewTaskTitle}
-          taskTitle={taskTitle}
-          IsSubmitting={IsSubmitting}
+          allDone={areTasksDone}
+          handleError={handleError}
           inputRef={inputRef}
-          taskLengthForButton={tasks.length}
+          taskCounter={tasks.length}
+          setTempTodo={setTempTodo}
+          IsSubmitting={IsSubmitting}
+          setTasks={setTasks}
+          tasks={tasks}
+          onFocus={focusInput}
+          handleIsSubmitting={handleIsSubmitting}
+          isSubmitting={IsSubmitting}
+          setIsUpdating={setIsUpdating}
         />
         <TodoList
-          filteredTodos={filteredTodos}
+          status={status}
           handleCompleted={handleCompleted}
           tempTodo={tempTodo}
           deleteTask={deleteTask}
@@ -290,7 +208,6 @@ export const App: React.FC = () => {
           onNewTasks={handleSetTasks}
           tasks={tasks}
           setIsUpdating={setIsUpdating}
-          IsSubmitting={IsSubmitting}
           handleIsSubmitting={handleIsSubmitting}
           canEdit={canEdit}
           onEdit={handleEdit}
