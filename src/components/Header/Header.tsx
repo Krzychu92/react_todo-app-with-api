@@ -11,7 +11,6 @@ type Props = {
   inputRef: LegacyRef<HTMLInputElement>;
   taskCounter: number;
   handleError: (errorMsg: string) => void;
-  // taskTitle: string;
   setTempTodo: (todo: Todo | null) => void;
   setTasks: (tasks: Todo[]) => void;
   tasks: Todo[];
@@ -41,18 +40,13 @@ export const ToDoHeader = ({
     handleIsSubmitting(true);
     setTempTodo(creatNewTodo);
     setIsUpdating([creatNewTodo.id]);
-    // const updatedTasks = [...tasks, creatNewTodo];
-
-    // setTasks(updatedTasks);
 
     addTodo(creatNewTodo)
       .then(response => {
-        // updatedTasks.pop();
         setTasks([...tasks, response]);
         setTaskTitle('');
       })
       .catch(() => {
-        // setTasks([...updatedTasks]);
         handleError(errorType.add);
       })
       .finally(() => {
@@ -61,30 +55,6 @@ export const ToDoHeader = ({
         setIsUpdating([]);
         onFocus();
       });
-
-    // try {
-    //   const newTodo: Todo = await addTodo(creatNewTodo);
-
-    //   if (tempTodo) {
-    //     setIsUpdating([tempTodo.id]);
-    //   }
-
-    //   setTasks(currentTodos => {
-    //     currentTodos.pop();
-
-    //     return [...currentTodos, newTodo];
-    //   });
-    //   setTaskTitle('');
-    // } catch {
-    //   setTasks(currentTodos => {
-    //     return [...currentTodos];
-    //   });
-    //   handleError(errorType.add);
-    // } finally {
-    //   // setTempTodo(null);
-    //   setIsSubmitting(false);
-    //   focusInput();
-    // }
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

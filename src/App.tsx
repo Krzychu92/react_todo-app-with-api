@@ -62,10 +62,6 @@ export const App: React.FC = () => {
     setIsSubmitting(isSubmitting);
   };
 
-  // const handleTaskTitle = (event: string) => {
-  //   setTaskTitle(event);
-  // };
-
   const handleAllCompleted = () => {
     const isAllDone = tasks.every(task => task.completed);
     const updatedTasks = tasks.map(task => ({
