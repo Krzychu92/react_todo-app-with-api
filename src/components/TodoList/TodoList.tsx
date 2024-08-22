@@ -8,7 +8,7 @@ import { Status } from '../../types/Status';
 
 type Props = {
   status: Status;
-  handleCompleted: (id: number) => void;
+  handleCompleted: (id: number, completed: boolean) => void;
   tempTodo: Todo | null;
   deleteTask: (id: number) => void;
   deletingIds: number[];
@@ -170,7 +170,7 @@ export const TodoList = ({
                 data-cy="TodoStatus"
                 type="checkbox"
                 className="todo__status"
-                onChange={() => handleCompleted(id)}
+                onChange={() => handleCompleted(id, completed)}
                 checked={completed}
               />
             </label>

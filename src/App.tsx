@@ -65,7 +65,7 @@ export const App: React.FC = () => {
     setIsSubmitting(isSubmitting);
   };
 
-  const handleCompleted = (id: number, completed?: boolean) => {
+  const handleCompleted = (id: number, completed: boolean) => {
     setIsUpdating(current => [...current, id]);
     let todoToUpdate = tasks.find(todo => todo.id === id);
 
@@ -75,7 +75,7 @@ export const App: React.FC = () => {
       return;
     }
 
-    if (completed === undefined) {
+    if (!completed) {
       todoToUpdate = {
         ...todoToUpdate,
         completed: !todoToUpdate.completed,
@@ -89,9 +89,9 @@ export const App: React.FC = () => {
 
     updateCompletedTodo(id, todoToUpdate)
       .then(() => {
-        setTasks(prevState => {
-          return prevState.map(todo => (todo.id === id ? todoToUpdate : todo));
-        });
+        setTasks(prevState =>
+          prevState.map(todo => (todo.id === id ? {...todo, completed: !todo.completed} : todo)
+        ));
         setIsUpdating([]);
       })
       .catch(() => {
@@ -100,28 +100,19 @@ export const App: React.FC = () => {
       });
   };
 
-  const handleAllCompleted = () => {
+  const handleAllCompleted = async () => {
     if (!areTasksDone) {
-      const tasksToUpdate = tasks.filter(task => task.completed === false);
-
-      setTasks(
-        tasksToUpdate.map(
-          task => (
-            handleCompleted(task.id, true), { ...task, completed: true }
-          ),
-        ),
+      const tasksToUpdate = tasks.filter(task => !task.completed);
+  
+      await Promise.all(
+        tasksToUpdate.map(task => handleCompleted(task.id, true))
       );
     } else {
-      setTasks(
-        tasks.map(
-          task => (
-            handleCompleted(task.id, false), { ...task, completed: false }
-          ),
-        ),
+      await Promise.all(
+        tasks.map(task => handleCompleted(task.id, false))
       );
     }
   };
-
   const deleteTask = (id: number) => {
     setDeletingIds(prevIds => [...prevIds, id]);
     deleteTodo(id)
