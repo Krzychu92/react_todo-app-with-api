@@ -90,8 +90,10 @@ export const App: React.FC = () => {
     updateCompletedTodo(id, todoToUpdate)
       .then(() => {
         setTasks(prevState =>
-          prevState.map(todo => (todo.id === id ? {...todo, completed: !todo.completed} : todo)
-        ));
+          prevState.map(todo =>
+            todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+          ),
+        );
         setIsUpdating([]);
       })
       .catch(() => {
@@ -103,16 +105,15 @@ export const App: React.FC = () => {
   const handleAllCompleted = async () => {
     if (!areTasksDone) {
       const tasksToUpdate = tasks.filter(task => !task.completed);
-  
+
       await Promise.all(
-        tasksToUpdate.map(task => handleCompleted(task.id, true))
+        tasksToUpdate.map(task => handleCompleted(task.id, true)),
       );
     } else {
-      await Promise.all(
-        tasks.map(task => handleCompleted(task.id, false))
-      );
+      await Promise.all(tasks.map(task => handleCompleted(task.id, false)));
     }
   };
+
   const deleteTask = (id: number) => {
     setDeletingIds(prevIds => [...prevIds, id]);
     deleteTodo(id)
