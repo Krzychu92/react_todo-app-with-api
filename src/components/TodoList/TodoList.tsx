@@ -166,15 +166,10 @@ export const TodoList = ({
             <span data-cy="TodoTitle" className="todo__title">
               {tempTodo.title}
             </span>
-            <div
-              data-cy="TodoLoader"
-              className={classNames('modal overlay ', {
-                'is-active': true,
-              })}
-            >
+            {/* <div data-cy="TodoLoader" className="modal overlay is-active">
               <div className="modal-background has-background-white-ter" />
               <div className="loader" />
-            </div>
+            </div> */}
           </div>
         </>
       )}

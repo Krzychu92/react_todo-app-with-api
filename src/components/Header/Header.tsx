@@ -11,7 +11,7 @@ type Props = {
   inputRef: LegacyRef<HTMLInputElement>;
   taskCounter: number;
   handleError: (errorMsg: string) => void;
-  setTempTodo: (todo: Todo | null) => void;
+  handleTempTodo: (todo: Todo | null) => void;
   setTasks: (tasks: Todo[]) => void;
   tasks: Todo[];
   onFocus: () => void;
@@ -26,7 +26,7 @@ export const ToDoHeader = ({
   inputRef,
   taskCounter,
   handleError,
-  setTempTodo,
+  handleTempTodo,
   setTasks,
   tasks,
   onFocus,
@@ -35,22 +35,18 @@ export const ToDoHeader = ({
   setIsUpdating,
 }: Props) => {
   const [taskTitle, setTaskTitle] = useState('');
-
   const addNewTodo = (creatNewTodo: Todo) => {
-    handleIsSubmitting(true);
-    setTempTodo(creatNewTodo);
-    setIsUpdating([creatNewTodo.id]);
-
     addTodo(creatNewTodo)
       .then(response => {
         setTasks([...tasks, response]);
         setTaskTitle('');
+        handleTempTodo(null);
       })
       .catch(() => {
         handleError(errorType.add);
+        handleTempTodo(null);
       })
       .finally(() => {
-        setTempTodo(null);
         handleIsSubmitting(false);
         setIsUpdating([]);
         onFocus();
@@ -74,6 +70,14 @@ export const ToDoHeader = ({
       id: 0,
     };
 
+    handleIsSubmitting(true);
+    setIsUpdating([newTodo.id]);
+    handleTempTodo({
+      title: title,
+      userId: USER_ID,
+      completed: false,
+      id: 0,
+    });
     addNewTodo(newTodo);
   };
 

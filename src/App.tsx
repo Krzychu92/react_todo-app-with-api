@@ -26,6 +26,7 @@ export const App: React.FC = () => {
   const [IsSubmitting, setIsSubmitting] = useState(false);
   const completedTodos = tasks?.filter(todo => todo.completed);
   const inputRef = useRef<HTMLInputElement>(null);
+
   const taskLeft = tempTodo
     ? tasks.length - completedTodos.length + 1
     : tasks.length - completedTodos.length;
@@ -58,38 +59,67 @@ export const App: React.FC = () => {
     setErrorMessage('');
   };
 
+  const handleTempTodo = (todo: Todo | null) => {
+    setTempTodo(todo);
+  };
+
   const handleIsSubmitting = (isSubmitting: boolean) => {
     setIsSubmitting(isSubmitting);
   };
 
+  const handleCompleted = (id: number, completed?: boolean) => {
+    setIsUpdating(current => [...current, id]);
+    let todoToUpdate = tasks.find(todo => todo.id === id);
+
+    if (!todoToUpdate) {
+      setErrorMessage(errorType.found);
+
+      return;
+    }
+
+    if (completed === undefined) {
+      todoToUpdate = {
+        ...todoToUpdate,
+        completed: !todoToUpdate.completed,
+      };
+    } else {
+      todoToUpdate = {
+        ...todoToUpdate,
+        completed: completed,
+      };
+    }
+
+    updateCompletedTodo(id, todoToUpdate)
+      .then(() => {
+        setTasks(prevState => {
+          return prevState.map(todo => (todo.id === id ? todoToUpdate : todo));
+        });
+        setIsUpdating([]);
+      })
+      .catch(() => {
+        handleError(errorType.updateTodo);
+        setIsUpdating([]);
+      });
+  };
+
   const handleAllCompleted = () => {
-    const isAllDone = tasks.every(task => task.completed);
-    const updatedTasks = tasks.map(task => ({
-      ...task,
-      completed: !isAllDone,
-    }));
-
-    updatedTasks.forEach(updatedTask => {
-      const originalTask = tasks.find(task => task.id === updatedTask.id);
-
-      if (originalTask && originalTask.completed !== updatedTask.completed) {
-        setIsUpdating(current => [...current, updatedTask.id]);
-        updateCompletedTodo(updatedTask.id, updatedTask)
-          .then(() => {
-            setIsUpdating(current =>
-              current.filter(id => id !== updatedTask.id),
-            );
-          })
-          .catch(() => {
-            handleError(errorType.updateTodo);
-            setIsUpdating(current =>
-              current.filter(id => id !== updatedTask.id),
-            );
-          });
-      }
-    });
-
-    setTasks(updatedTasks);
+    if (!areTasksDone) {
+      setTasks(
+        tasks.map(
+          task => (
+            handleCompleted(task.id, true), { ...task, completed: true }
+          ),
+        ),
+      );
+    } else {
+      setTasks(
+        tasks.map(
+          task => (
+            handleCompleted(task.id, false), { ...task, completed: false }
+          ),
+        ),
+      );
+    }
   };
 
   const deleteTask = (id: number) => {
@@ -127,34 +157,6 @@ export const App: React.FC = () => {
     });
   };
 
-  const handleCompleted = (id: number) => {
-    setIsUpdating(current => [...current, id]);
-    const todoToUpdate = tasks.find(todo => todo.id === id);
-
-    if (!todoToUpdate) {
-      setErrorMessage(errorType.found);
-
-      return;
-    }
-
-    const updatedTodo = {
-      ...todoToUpdate,
-      completed: !todoToUpdate.completed,
-    };
-
-    updateCompletedTodo(id, updatedTodo)
-      .then(() => {
-        setTasks(prevState => {
-          return prevState.map(todo => (todo.id === id ? updatedTodo : todo));
-        });
-        setIsUpdating([]);
-      })
-      .catch(() => {
-        handleError(errorType.updateTodo);
-        setIsUpdating([]);
-      });
-  };
-
   useEffect(() => {
     getTodos()
       .then(setTasks)
@@ -184,7 +186,7 @@ export const App: React.FC = () => {
           handleError={handleError}
           inputRef={inputRef}
           taskCounter={tasks.length}
-          setTempTodo={setTempTodo}
+          handleTempTodo={handleTempTodo}
           IsSubmitting={IsSubmitting}
           setTasks={setTasks}
           tasks={tasks}
