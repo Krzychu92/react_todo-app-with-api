@@ -27,9 +27,7 @@ export const App: React.FC = () => {
   const completedTodos = tasks?.filter(todo => todo.completed);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const taskLeft = tempTodo
-    ? tasks.length - completedTodos.length + 1
-    : tasks.length - completedTodos.length;
+  const taskLeft = tasks.length - completedTodos.length;
 
   const areTasksDone = tasks.length === completedTodos.length;
 
@@ -104,8 +102,10 @@ export const App: React.FC = () => {
 
   const handleAllCompleted = () => {
     if (!areTasksDone) {
+      const tasksToUpdate = tasks.filter(task => task.completed === false);
+
       setTasks(
-        tasks.map(
+        tasksToUpdate.map(
           task => (
             handleCompleted(task.id, true), { ...task, completed: true }
           ),
