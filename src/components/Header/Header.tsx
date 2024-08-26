@@ -1,12 +1,10 @@
 import { errorType } from '../../types/ErrorType';
 import classNames from 'classnames';
 import { LegacyRef, useState } from 'react';
-import { addTodo, USER_ID } from '../../api/todos';
+import { addTodo, updateCompletedTodo, USER_ID } from '../../api/todos';
 import { Todo } from '../../types/Todo';
 
 type Props = {
-  handleAllCompleted: () => void;
-  allDone: boolean;
   IsSubmitting: boolean;
   inputRef: LegacyRef<HTMLInputElement>;
   taskCounter: number;
@@ -18,11 +16,10 @@ type Props = {
   handleIsSubmitting: (isSubmitting: boolean) => void;
   isSubmitting: boolean;
   setIsUpdating: (ids: number[]) => void;
+  completedTodos: Todo[];
 };
 
 export const ToDoHeader = ({
-  handleAllCompleted,
-  allDone,
   inputRef,
   taskCounter,
   handleError,
@@ -33,8 +30,11 @@ export const ToDoHeader = ({
   handleIsSubmitting,
   isSubmitting,
   setIsUpdating,
+  completedTodos,
 }: Props) => {
   const [taskTitle, setTaskTitle] = useState('');
+  const areTasksDone = tasks.length === completedTodos.length;
+
   const addNewTodo = (creatNewTodo: Todo) => {
     addTodo(creatNewTodo)
       .then(response => {
@@ -81,12 +81,66 @@ export const ToDoHeader = ({
     addNewTodo(newTodo);
   };
 
+  const handleAllCompleted = async () => {
+    let updateTasksIds: number[] = [];
+
+    if (!areTasksDone) {
+      const tasksToUpdate = tasks.filter(task => !task.completed);
+
+      await Promise.all(
+        tasksToUpdate.map(task => {
+          updateTasksIds = [...updateTasksIds, task.id];
+          setIsUpdating(updateTasksIds);
+          updateCompletedTodo(task.id, { ...task, completed: true })
+            .then(() => {
+              setTasks(
+                tasks.map(todo => ({
+                  ...todo,
+                  completed: true,
+                })),
+              );
+            })
+            .catch(() => {
+              handleError(errorType.updateTodo);
+            })
+            .finally(() => {
+              setIsUpdating([]);
+            });
+        }),
+      );
+    } else {
+      await Promise.all(
+        tasks.map(task => {
+          updateTasksIds = [...updateTasksIds, task.id];
+          setIsUpdating(updateTasksIds);
+          updateCompletedTodo(task.id, { ...task, completed: false })
+            .then(() => {
+              setTasks(
+                tasks.map(todo => ({
+                  ...todo,
+                  completed: false,
+                })),
+              );
+            })
+            .catch(() => {
+              handleError(errorType.updateTodo);
+            })
+            .finally(() => {
+              setIsUpdating([]);
+            });
+        }),
+      );
+    }
+  };
+
   return (
     <header className="todoapp__header">
       {taskCounter > 0 && (
         <button
           type="button"
-          className={classNames('todoapp__toggle-all', { active: allDone })}
+          className={classNames('todoapp__toggle-all', {
+            active: areTasksDone,
+          })}
           data-cy="ToggleAllButton"
           onClick={() => handleAllCompleted()}
         />

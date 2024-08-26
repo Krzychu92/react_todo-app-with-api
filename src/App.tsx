@@ -1,12 +1,7 @@
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useRef, useState } from 'react';
 import { UserWarning } from './UserWarning';
-import {
-  USER_ID,
-  deleteTodo,
-  getTodos,
-  updateCompletedTodo,
-} from './api/todos';
+import { USER_ID, deleteTodo, getTodos } from './api/todos';
 import { ToDoHeader } from './components/Header/Header';
 import { TodoList } from './components/TodoList/TodoList';
 import { Footer } from './components/Footer/Footer';
@@ -20,16 +15,13 @@ export const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [status, setStatus] = useState<Status>(Status.all);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  const [deletingIds, setDeletingIds] = useState<number[]>([]);
+  // const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [isUpdating, setIsUpdating] = useState<number[] | []>([]);
-  const [canEdit, setCanEdit] = useState(false);
   const [IsSubmitting, setIsSubmitting] = useState(false);
   const completedTodos = tasks?.filter(todo => todo.completed);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const taskLeft = tasks.length - completedTodos.length;
-
-  const areTasksDone = tasks.length === completedTodos.length;
 
   const focusInput = () => {
     setTimeout(() => {
@@ -43,10 +35,6 @@ export const App: React.FC = () => {
 
   const handleSetTasks = (newTasks: Todo[]) => {
     setTasks(newTasks);
-  };
-
-  const handleEdit = (edit: boolean) => {
-    setCanEdit(edit);
   };
 
   const handleError: (errorMsg: string) => void = errorMsg => {
@@ -65,88 +53,26 @@ export const App: React.FC = () => {
     setIsSubmitting(isSubmitting);
   };
 
-  const handleCompleted = (id: number, completed: boolean) => {
-    setIsUpdating(current => [...current, id]);
-    let todoToUpdate = tasks.find(todo => todo.id === id);
+  const clearCompleted = async () => {
+    let updateTasksIds: number[] = [];
 
-    if (!todoToUpdate) {
-      setErrorMessage(errorType.found);
-
-      return;
-    }
-
-    if (!completed) {
-      todoToUpdate = {
-        ...todoToUpdate,
-        completed: !todoToUpdate.completed,
-      };
-    } else {
-      todoToUpdate = {
-        ...todoToUpdate,
-        completed: completed,
-      };
-    }
-
-    updateCompletedTodo(id, todoToUpdate)
-      .then(() => {
-        setTasks(prevState =>
-          prevState.map(todo =>
-            todo.id === id ? { ...todo, completed: !todo.completed } : todo,
-          ),
-        );
-        setIsUpdating([]);
-      })
-      .catch(() => {
-        handleError(errorType.updateTodo);
-        setIsUpdating([]);
-      });
-  };
-
-  const handleAllCompleted = async () => {
-    if (!areTasksDone) {
-      const tasksToUpdate = tasks.filter(task => !task.completed);
-
-      await Promise.all(
-        tasksToUpdate.map(task => handleCompleted(task.id, true)),
-      );
-    } else {
-      await Promise.all(tasks.map(task => handleCompleted(task.id, false)));
-    }
-  };
-
-  const deleteTask = (id: number) => {
-    setDeletingIds(prevIds => [...prevIds, id]);
-    deleteTodo(id)
-      .then(() => {
-        if (canEdit === true) {
-          handleEdit(false);
-        }
-
-        setTasks(currentTodos => currentTodos.filter(todo => todo.id !== id));
-        setDeletingIds(prevIds =>
-          prevIds.filter(deletingId => deletingId !== id),
-        );
-        focusInput();
-      })
-      .catch(() => {
-        if (canEdit === true) {
-          handleEdit(true);
-        }
-
-        handleError(errorType.deleteTask);
-        setDeletingIds([]);
-      });
-  };
-
-  const clearCompleted = () => {
-    Promise.all(
+    await Promise.all(
       completedTodos.map(todo => {
-        deleteTask(todo.id);
-        setIsUpdating([]);
+        updateTasksIds = [...updateTasksIds, todo.id];
+        setIsUpdating(updateTasksIds);
+        deleteTodo(todo.id)
+          .then(() => {
+            getTodos().then(setTasks);
+          })
+          .catch(() => {
+            handleError(errorType.deleteTask);
+            setIsUpdating([]);
+          })
+          .finally(() => {
+            focusInput();
+          });
       }),
-    ).then(() => {
-      focusInput();
-    });
+    );
   };
 
   useEffect(() => {
@@ -173,8 +99,7 @@ export const App: React.FC = () => {
 
       <div className="todoapp__content">
         <ToDoHeader
-          handleAllCompleted={handleAllCompleted}
-          allDone={areTasksDone}
+          completedTodos={completedTodos}
           handleError={handleError}
           inputRef={inputRef}
           taskCounter={tasks.length}
@@ -189,18 +114,15 @@ export const App: React.FC = () => {
         />
         <TodoList
           status={status}
-          handleCompleted={handleCompleted}
           tempTodo={tempTodo}
-          deleteTask={deleteTask}
-          deletingIds={deletingIds}
           onUpdate={isUpdating}
           handleError={handleError}
           onNewTasks={handleSetTasks}
           tasks={tasks}
           setIsUpdating={setIsUpdating}
           handleIsSubmitting={handleIsSubmitting}
-          canEdit={canEdit}
-          onEdit={handleEdit}
+          focusInput={focusInput}
+          setTasks={setTasks}
         />
 
         {tasks.length > 0 && (

@@ -3,42 +3,64 @@ import classNames from 'classnames';
 import { Todo } from '../../types/Todo';
 import { errorType } from '../../types/ErrorType';
 import { useRef, useState } from 'react';
-import { updateTitleTodo } from '../../api/todos';
+import {
+  deleteTodo,
+  updateCompletedTodo,
+  updateTitleTodo,
+} from '../../api/todos';
 import { Status } from '../../types/Status';
 
 type Props = {
   status: Status;
-  handleCompleted: (id: number, completed: boolean) => void;
   tempTodo: Todo | null;
-  deleteTask: (id: number) => void;
-  deletingIds: number[];
   onUpdate: number[];
   handleError: (error: string) => void;
   onNewTasks: (tasks: Todo[]) => void;
   tasks: Todo[];
   setIsUpdating: (ids: number[]) => void;
   handleIsSubmitting: (isSubmitting: boolean) => void;
-  canEdit: boolean;
-  onEdit: (canEdit: boolean) => void;
+  setTasks: (tasks: Todo[]) => void;
+  focusInput: () => void;
 };
 
 export const TodoList = ({
   status,
-  handleCompleted,
   tempTodo,
-  deleteTask,
-  deletingIds,
   onUpdate,
   handleError,
   onNewTasks,
   tasks,
   setIsUpdating,
   handleIsSubmitting,
-  canEdit,
-  onEdit,
+  setTasks,
+  focusInput,
 }: Props) => {
   const [newTitle, setNewTitle] = useState('');
+  const [canEdit, setCanEdit] = useState(false);
   const editRef = useRef<number | null>(null);
+
+  const deleteTask = (id: number) => {
+    setIsUpdating([id]);
+    deleteTodo(id)
+      .then(() => {
+        if (canEdit === true) {
+          setCanEdit(false);
+        }
+
+        const updatedTasks = tasks.filter(todo => todo.id !== id);
+
+        setTasks(updatedTasks);
+        focusInput();
+      })
+      .catch(() => {
+        if (canEdit === true) {
+          setCanEdit(true);
+        }
+
+        handleError(errorType.deleteTask);
+        setIsUpdating([]);
+      });
+  };
 
   const updateNewTitle = (id: number, newTitl: string) => {
     const updateTitle = newTitl.trim();
@@ -68,12 +90,12 @@ export const TodoList = ({
       .then(() => {
         onNewTasks(updatedTasks);
         setIsUpdating([]);
-        onEdit(false);
+        setCanEdit(false);
       })
       .catch(() => {
         handleError(errorType.updateTodo);
 
-        onEdit(true);
+        setCanEdit(true);
         editRef.current = id;
         const revertedTasks = tasks.map(todo =>
           todo.id === id ? { ...todo, title: todoToUpdate.title } : todo,
@@ -119,12 +141,12 @@ export const TodoList = ({
 
   const sendTitle = (id: number) => {
     handleSubmitNewTitle(id, newTitle);
-    onEdit(false);
+    setCanEdit(false);
   };
 
   const handleDoubleClick = (id: number, updateTitle: string) => {
     if (!canEdit) {
-      onEdit(true);
+      setCanEdit(true);
       setNewTitle(updateTitle);
       editRef.current = id;
     }
@@ -132,7 +154,7 @@ export const TodoList = ({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
-      onEdit(false);
+      setCanEdit(false);
     }
   };
 
@@ -149,6 +171,31 @@ export const TodoList = ({
   };
 
   const filteredTodos = filterTodo(tasks, status);
+
+  const handleCompleted = (id: number) => {
+    setIsUpdating([id]);
+    const todoToUpdate = tasks.find(todo => todo.id === id);
+
+    if (!todoToUpdate) {
+      handleError(errorType.found);
+
+      return;
+    }
+
+    updateCompletedTodo(id, todoToUpdate)
+      .then(() => {
+        const updatedTasks = tasks.map(todo =>
+          todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+        );
+
+        setTasks(updatedTasks);
+        setIsUpdating([]);
+      })
+      .catch(() => {
+        handleError(errorType.updateTodo);
+        setIsUpdating([]);
+      });
+  };
 
   return (
     <section className="todoapp__main" data-cy="TodoList">
@@ -170,7 +217,7 @@ export const TodoList = ({
                 data-cy="TodoStatus"
                 type="checkbox"
                 className="todo__status"
-                onChange={() => handleCompleted(id, completed)}
+                onChange={() => handleCompleted(id)}
                 checked={completed}
               />
             </label>
@@ -221,7 +268,7 @@ export const TodoList = ({
             <div
               data-cy="TodoLoader"
               className={classNames('modal overlay ', {
-                'is-active': deletingIds.includes(id) || onUpdate.includes(id),
+                'is-active': onUpdate.includes(id),
               })}
             >
               <div className="modal-background has-background-white-ter" />
