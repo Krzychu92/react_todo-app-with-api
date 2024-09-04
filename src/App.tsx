@@ -1,7 +1,7 @@
 /* eslint-disable jsx-a11y/control-has-associated-label */
 import React, { useEffect, useRef, useState } from 'react';
 import { UserWarning } from './UserWarning';
-import { USER_ID, deleteTodo, getTodos } from './api/todos';
+import { USER_ID, getTodos } from './api/todos';
 import { ToDoHeader } from './components/Header/Header';
 import { TodoList } from './components/TodoList/TodoList';
 import { Footer } from './components/Footer/Footer';
@@ -15,7 +15,6 @@ export const App: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [status, setStatus] = useState<Status>(Status.all);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
-  // const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [isUpdating, setIsUpdating] = useState<number[] | []>([]);
   const [IsSubmitting, setIsSubmitting] = useState(false);
   const completedTodos = tasks?.filter(todo => todo.completed);
@@ -53,26 +52,8 @@ export const App: React.FC = () => {
     setIsSubmitting(isSubmitting);
   };
 
-  const clearCompleted = async () => {
-    let updateTasksIds: number[] = [];
-
-    await Promise.all(
-      completedTodos.map(todo => {
-        updateTasksIds = [...updateTasksIds, todo.id];
-        setIsUpdating(updateTasksIds);
-        deleteTodo(todo.id)
-          .then(() => {
-            getTodos().then(setTasks);
-          })
-          .catch(() => {
-            handleError(errorType.deleteTask);
-            setIsUpdating([]);
-          })
-          .finally(() => {
-            focusInput();
-          });
-      }),
-    );
+  const handleLoading = (idsArr: number[]) => {
+    setIsUpdating(idsArr);
   };
 
   useEffect(() => {
@@ -104,13 +85,12 @@ export const App: React.FC = () => {
           inputRef={inputRef}
           taskCounter={tasks.length}
           handleTempTodo={handleTempTodo}
-          IsSubmitting={IsSubmitting}
           setTasks={setTasks}
           tasks={tasks}
           onFocus={focusInput}
           handleIsSubmitting={handleIsSubmitting}
+          onLoading={handleLoading}
           isSubmitting={IsSubmitting}
-          setIsUpdating={setIsUpdating}
         />
         <TodoList
           status={status}
@@ -119,7 +99,7 @@ export const App: React.FC = () => {
           handleError={handleError}
           onNewTasks={handleSetTasks}
           tasks={tasks}
-          setIsUpdating={setIsUpdating}
+          onLoading={handleLoading}
           handleIsSubmitting={handleIsSubmitting}
           focusInput={focusInput}
           setTasks={setTasks}
@@ -127,11 +107,14 @@ export const App: React.FC = () => {
 
         {tasks.length > 0 && (
           <Footer
-            onClear={clearCompleted}
             handleStatus={handleStatus}
             status={status}
             taskLeft={taskLeft}
             completedTodos={completedTodos}
+            setTasks={setTasks}
+            onLoading={handleLoading}
+            focusInput={focusInput}
+            handleError={handleError}
           />
         )}
       </div>

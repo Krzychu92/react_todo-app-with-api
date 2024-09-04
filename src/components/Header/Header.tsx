@@ -5,7 +5,6 @@ import { addTodo, updateCompletedTodo, USER_ID } from '../../api/todos';
 import { Todo } from '../../types/Todo';
 
 type Props = {
-  IsSubmitting: boolean;
   inputRef: LegacyRef<HTMLInputElement>;
   taskCounter: number;
   handleError: (errorMsg: string) => void;
@@ -15,7 +14,7 @@ type Props = {
   onFocus: () => void;
   handleIsSubmitting: (isSubmitting: boolean) => void;
   isSubmitting: boolean;
-  setIsUpdating: (ids: number[]) => void;
+  onLoading: (ids: number[]) => void;
   completedTodos: Todo[];
 };
 
@@ -28,9 +27,9 @@ export const ToDoHeader = ({
   tasks,
   onFocus,
   handleIsSubmitting,
-  isSubmitting,
-  setIsUpdating,
+  onLoading,
   completedTodos,
+  isSubmitting,
 }: Props) => {
   const [taskTitle, setTaskTitle] = useState('');
   const areTasksDone = tasks.length === completedTodos.length;
@@ -48,7 +47,7 @@ export const ToDoHeader = ({
       })
       .finally(() => {
         handleIsSubmitting(false);
-        setIsUpdating([]);
+        onLoading([]);
         onFocus();
       });
   };
@@ -71,7 +70,7 @@ export const ToDoHeader = ({
     };
 
     handleIsSubmitting(true);
-    setIsUpdating([newTodo.id]);
+    onLoading([newTodo.id]);
     handleTempTodo({
       title: title,
       userId: USER_ID,
@@ -90,7 +89,7 @@ export const ToDoHeader = ({
       await Promise.all(
         tasksToUpdate.map(task => {
           updateTasksIds = [...updateTasksIds, task.id];
-          setIsUpdating(updateTasksIds);
+          onLoading(updateTasksIds);
           updateCompletedTodo(task.id, { ...task, completed: true })
             .then(() => {
               setTasks(
@@ -104,7 +103,7 @@ export const ToDoHeader = ({
               handleError(errorType.updateTodo);
             })
             .finally(() => {
-              setIsUpdating([]);
+              onLoading([]);
             });
         }),
       );
@@ -112,7 +111,7 @@ export const ToDoHeader = ({
       await Promise.all(
         tasks.map(task => {
           updateTasksIds = [...updateTasksIds, task.id];
-          setIsUpdating(updateTasksIds);
+          onLoading(updateTasksIds);
           updateCompletedTodo(task.id, { ...task, completed: false })
             .then(() => {
               setTasks(
@@ -126,7 +125,7 @@ export const ToDoHeader = ({
               handleError(errorType.updateTodo);
             })
             .finally(() => {
-              setIsUpdating([]);
+              onLoading([]);
             });
         }),
       );

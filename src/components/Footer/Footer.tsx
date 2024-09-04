@@ -1,22 +1,52 @@
 import classNames from 'classnames';
 import { Status } from '../../types/Status';
 import { Todo } from '../../types/Todo';
+import { deleteTodo } from '../../api/todos';
+import { errorType } from '../../types/ErrorType';
 
-type Props = {
+interface FooterProps {
   status: Status;
   handleStatus: (value: Status) => void;
-  onClear: () => void;
   completedTodos: Todo[];
   taskLeft: number;
-};
+  setTasks: React.Dispatch<React.SetStateAction<Todo[]>>;
+  onLoading: (ids: number[]) => void;
+  focusInput: () => void;
+  handleError: (error: string) => void;
+}
 
-export const Footer = ({
+export const Footer: React.FC<FooterProps> = ({
   status,
   handleStatus,
-  onClear,
   completedTodos,
   taskLeft,
-}: Props) => {
+  setTasks,
+  onLoading,
+  focusInput,
+  handleError,
+}) => {
+  const clearCompleted = async () => {
+    let updateTasksIds: number[] = [];
+
+    await Promise.all(
+      completedTodos.map(todo => {
+        updateTasksIds = [...updateTasksIds, todo.id];
+        onLoading(updateTasksIds);
+        deleteTodo(todo.id)
+          .then(() => {
+            setTasks(prevState => prevState.filter(el => el.id !== todo.id));
+          })
+          .catch(() => {
+            handleError(errorType.deleteTask);
+            onLoading([]);
+          })
+          .finally(() => {
+            focusInput();
+          });
+      }),
+    );
+  };
+
   return (
     <>
       <footer className="todoapp__footer" data-cy="Footer">
@@ -65,7 +95,7 @@ export const Footer = ({
           type="button"
           className="todoapp__clear-completed"
           data-cy="ClearCompletedButton"
-          onClick={() => onClear()}
+          onClick={() => clearCompleted()}
           disabled={completedTodos.length === 0}
         >
           Clear completed

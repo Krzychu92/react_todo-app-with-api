@@ -9,6 +9,7 @@ import {
   updateTitleTodo,
 } from '../../api/todos';
 import { Status } from '../../types/Status';
+import { TempTodo } from '../TempTodo/TempTodo';
 
 type Props = {
   status: Status;
@@ -17,7 +18,7 @@ type Props = {
   handleError: (error: string) => void;
   onNewTasks: (tasks: Todo[]) => void;
   tasks: Todo[];
-  setIsUpdating: (ids: number[]) => void;
+  onLoading: (ids: number[]) => void;
   handleIsSubmitting: (isSubmitting: boolean) => void;
   setTasks: (tasks: Todo[]) => void;
   focusInput: () => void;
@@ -30,7 +31,7 @@ export const TodoList = ({
   handleError,
   onNewTasks,
   tasks,
-  setIsUpdating,
+  onLoading,
   handleIsSubmitting,
   setTasks,
   focusInput,
@@ -40,7 +41,7 @@ export const TodoList = ({
   const editRef = useRef<number | null>(null);
 
   const deleteTask = (id: number) => {
-    setIsUpdating([id]);
+    onLoading([id]);
     deleteTodo(id)
       .then(() => {
         if (canEdit === true) {
@@ -58,7 +59,7 @@ export const TodoList = ({
         }
 
         handleError(errorType.deleteTask);
-        setIsUpdating([]);
+        onLoading([]);
       });
   };
 
@@ -89,7 +90,7 @@ export const TodoList = ({
     updateTitleTodo(id, updatedTodo)
       .then(() => {
         onNewTasks(updatedTasks);
-        setIsUpdating([]);
+        onLoading([]);
         setCanEdit(false);
       })
       .catch(() => {
@@ -103,7 +104,7 @@ export const TodoList = ({
 
         onNewTasks(revertedTasks);
 
-        setIsUpdating([]);
+        onLoading([]);
       });
     handleIsSubmitting(false);
   };
@@ -131,7 +132,7 @@ export const TodoList = ({
     }
 
     handleIsSubmitting(true);
-    setIsUpdating([id]);
+    onLoading([id]);
     updateNewTitle(id, trimmedTitle);
   };
 
@@ -173,7 +174,7 @@ export const TodoList = ({
   const filteredTodos = filterTodo(tasks, status);
 
   const handleCompleted = (id: number) => {
-    setIsUpdating([id]);
+    onLoading([id]);
     const todoToUpdate = tasks.find(todo => todo.id === id);
 
     if (!todoToUpdate) {
@@ -189,11 +190,11 @@ export const TodoList = ({
         );
 
         setTasks(updatedTasks);
-        setIsUpdating([]);
+        onLoading([]);
       })
       .catch(() => {
         handleError(errorType.updateTodo);
-        setIsUpdating([]);
+        onLoading([]);
       });
   };
 
@@ -277,30 +278,7 @@ export const TodoList = ({
           </div>
         );
       })}
-      {tempTodo && (
-        <>
-          <div data-cy="Todo" className="todo">
-            <label className="todo__status-label">
-              <input
-                data-cy="TodoStatus"
-                type="checkbox"
-                className="todo__status"
-              />
-            </label>
-
-            <span data-cy="TodoTitle" className="todo__title">
-              {tempTodo.title}
-            </span>
-            <div data-cy="TodoLoader" className="modal overlay is-active">
-              <div
-                className="modal-background 
-                      has-background-white-ter"
-              />
-              <div className="loader" />
-            </div>
-          </div>
-        </>
-      )}
+      {tempTodo && <TempTodo title={tempTodo.title} />}
     </section>
   );
 };
