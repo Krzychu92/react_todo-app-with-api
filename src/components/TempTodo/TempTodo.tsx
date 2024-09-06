@@ -1,14 +1,18 @@
-/* eslint-disable jsx-a11y/label-has-associated-control */
+import { Todo } from '../../types/Todo';
+
 type TempTodoProps = {
-  title: string;
+  tempTodo: Todo | null;
 };
 
-export const TempTodo = ({ title }: TempTodoProps) => {
+export const TempTodo = ({ tempTodo }: TempTodoProps) => {
+  const todoId = tempTodo ? tempTodo.id.toString() : undefined;
+
   return (
     <div data-cy="Todo" className="todo">
-      <label htmlFor={title} className="todo__status-label">
+      {/*eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+      <label htmlFor={todoId} className="todo__status-label">
         <input
-          id={title}
+          id={todoId}
           data-cy="TodoStatus"
           type="checkbox"
           className="todo__status"
@@ -16,7 +20,7 @@ export const TempTodo = ({ title }: TempTodoProps) => {
       </label>
 
       <span data-cy="TodoTitle" className="todo__title">
-        {title}
+        {tempTodo?.title}
       </span>
       <div data-cy="TodoLoader" className="modal overlay is-active">
         <div className="modal-background has-background-white-ter" />
