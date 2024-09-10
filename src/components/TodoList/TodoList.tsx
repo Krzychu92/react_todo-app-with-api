@@ -30,9 +30,9 @@ export const TodoList = () => {
         if (editMode.length > 0) {
           setEditMode([]);
         }
-  
+
         const updatedTasks = tasks.filter(todo => todo.id !== id);
-  
+
         setTasks(updatedTasks);
         focusInput();
       })
@@ -40,7 +40,7 @@ export const TodoList = () => {
         if (editMode.length > 0) {
           setEditMode([id]);
         }
-  
+
         setErrorMessage(errorType.deleteTask);
       })
       .finally(() => {
