@@ -1,10 +1,7 @@
-import { Todo } from '../../types/Todo';
+import { useTodoContext } from '../../context/TodoProvider';
 
-type TempTodoProps = {
-  tempTodo: Todo | null;
-};
-
-export const TempTodo = ({ tempTodo }: TempTodoProps) => {
+export const TempTodo = () => {
+  const { tempTodo } = useTodoContext();
   const todoId = tempTodo ? tempTodo.id.toString() : undefined;
 
   return (

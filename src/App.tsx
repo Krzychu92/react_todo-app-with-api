@@ -8,7 +8,7 @@ import { Errors } from './components/Error/Error';
 import { useTodoContext } from './context/TodoProvider';
 
 export const App: React.FC = () => {
-  const { tasks, completedTodos } = useTodoContext();
+  const { tasks } = useTodoContext();
 
   if (!USER_ID) {
     return <UserWarning />;
@@ -19,7 +19,7 @@ export const App: React.FC = () => {
       <h1 className="todoapp__title">todos</h1>
 
       <div className="todoapp__content">
-        <ToDoHeader completedTodos={completedTodos} />
+        <ToDoHeader />
         <TodoList />
 
         {tasks.length > 0 && <Footer />}

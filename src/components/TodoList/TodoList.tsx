@@ -7,6 +7,7 @@ import { Status } from '../../types/Status';
 import { TempTodo } from '../TempTodo/TempTodo';
 import { TodoEditForm } from '../TodoEditForm/TodoEditForm';
 import { useTodoContext } from '../../context/TodoProvider';
+import { TodoLoader } from '../TodoLoader/TodoLoader';
 
 export const TodoList = () => {
   const {
@@ -16,19 +17,18 @@ export const TodoList = () => {
     tempTodo,
     setErrorMessage,
     setIsUpdating,
-    isUpdating,
     status,
   } = useTodoContext();
   const [newTitle, setNewTitle] = useState('');
-  const [canEdit, setCanEdit] = useState(false);
+  const [editMode, setEditMode] = useState<number[]>([]);
   const editRef = useRef<HTMLInputElement>(null);
 
   const deleteTask = (id: number) => {
     setIsUpdating([id]);
     deleteTodo(id)
       .then(() => {
-        if (canEdit === true) {
-          setCanEdit(false);
+        if (editMode.length >= 0) {
+          setEditMode([]);
         }
 
         const updatedTasks = tasks.filter(todo => todo.id !== id);
@@ -37,8 +37,8 @@ export const TodoList = () => {
         focusInput();
       })
       .catch(() => {
-        if (canEdit === true) {
-          setCanEdit(true);
+        if (editMode.length >= 0) {
+          setEditMode([id]);
         }
 
         setErrorMessage(errorType.deleteTask);
@@ -46,11 +46,9 @@ export const TodoList = () => {
       });
   };
 
-  const handleDoubleClick = (updateTitle: string) => {
-    if (!canEdit) {
-      setCanEdit(true);
-      setNewTitle(updateTitle);
-    }
+  const handleDoubleClick = (updateTitle: string, id: number) => {
+    setEditMode([id]);
+    setNewTitle(updateTitle);
   };
 
   const filterTodo: (todos: Todo[], mode: Status) => Todo[] = (todos, mode) => {
@@ -116,14 +114,14 @@ export const TodoList = () => {
                 data-cy="TodoStatus"
                 type="checkbox"
                 className="todo__status"
-                onClick={() => handleCompleted(id)}
+                onChange={() => handleCompleted(id)}
                 checked={completed}
               />
             </label>
-            {canEdit ? (
+            {editMode.includes(id) ? (
               <TodoEditForm
                 tasks={tasks}
-                setCanEdit={setCanEdit}
+                setCanEdit={setEditMode}
                 setNewTitle={setNewTitle}
                 newTitle={newTitle}
                 deleteTask={deleteTask}
@@ -135,7 +133,9 @@ export const TodoList = () => {
                 <span
                   data-cy="TodoTitle"
                   className="todo__title"
-                  onDoubleClick={() => handleDoubleClick(title)}
+                  onDoubleClick={() => {
+                    handleDoubleClick(title, id);
+                  }}
                 >
                   {title}
                 </span>
@@ -149,19 +149,11 @@ export const TodoList = () => {
                 </button>
               </>
             )}
-            <div
-              data-cy="TodoLoader"
-              className={classNames('modal overlay ', {
-                'is-active': isUpdating.includes(id),
-              })}
-            >
-              <div className="modal-background has-background-white-ter" />
-              <div className="loader" />
-            </div>
+            <TodoLoader taskId={id} />
           </div>
         );
       })}
-      {tempTodo && <TempTodo tempTodo={tempTodo} />}
+      {tempTodo && <TempTodo />}
     </section>
   );
 };

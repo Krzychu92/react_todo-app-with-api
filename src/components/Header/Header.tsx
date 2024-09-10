@@ -5,11 +5,7 @@ import { addTodo, updateCompletedTodo, USER_ID } from '../../api/todos';
 import { Todo } from '../../types/Todo';
 import { useTodoContext } from '../../context/TodoProvider';
 
-type Props = {
-  completedTodos: Todo[];
-};
-
-export const ToDoHeader = ({ completedTodos }: Props) => {
+export const ToDoHeader = () => {
   const {
     tasks,
     setTasks,
@@ -20,6 +16,7 @@ export const ToDoHeader = ({ completedTodos }: Props) => {
     isSubmitting,
     setIsSubmitting,
     inputRef,
+    completedTodos,
   } = useTodoContext();
   const [taskTitle, setTaskTitle] = useState('');
   const areTasksDone = tasks.length === completedTodos.length;

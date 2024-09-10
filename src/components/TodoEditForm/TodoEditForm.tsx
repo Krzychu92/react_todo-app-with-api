@@ -6,7 +6,7 @@ import { useTodoContext } from '../../context/TodoProvider';
 
 type Props = {
   tasks: Todo[];
-  setCanEdit: (canEdit: boolean) => void;
+  setCanEdit: (canEdit: number[]) => void;
   setNewTitle: (newTitle: string) => void;
   newTitle: string;
   deleteTask: (id: number) => void;
@@ -20,7 +20,6 @@ export const TodoEditForm = ({
   newTitle,
   deleteTask,
   taskId,
-  // editRef,
 }: Props) => {
   const { setErrorMessage, setIsUpdating, setIsSubmitting, setTasks } =
     useTodoContext();
@@ -52,12 +51,12 @@ export const TodoEditForm = ({
       .then(() => {
         setTasks(updatedTasks);
         setIsUpdating([]);
-        setCanEdit(false);
+        setCanEdit([]);
       })
       .catch(() => {
         setErrorMessage(errorType.updateTodo);
 
-        setCanEdit(true);
+        setCanEdit([id]);
         const revertedTasks = tasks.map(todo =>
           todo.id === id ? { ...todo, title: todoToUpdate.title } : todo,
         );
@@ -102,12 +101,12 @@ export const TodoEditForm = ({
 
   const sendTitle = (id: number) => {
     handleSubmitNewTitle(id, newTitle);
-    setCanEdit(false);
+    setCanEdit([]);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Escape') {
-      setCanEdit(false);
+      setCanEdit([]);
     }
   };
 
