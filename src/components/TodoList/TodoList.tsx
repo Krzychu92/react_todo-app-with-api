@@ -27,21 +27,23 @@ export const TodoList = () => {
     setIsUpdating([id]);
     deleteTodo(id)
       .then(() => {
-        if (editMode.length >= 0) {
+        if (editMode.length > 0) {
           setEditMode([]);
         }
-
+  
         const updatedTasks = tasks.filter(todo => todo.id !== id);
-
+  
         setTasks(updatedTasks);
         focusInput();
       })
       .catch(() => {
-        if (editMode.length >= 0) {
+        if (editMode.length > 0) {
           setEditMode([id]);
         }
-
+  
         setErrorMessage(errorType.deleteTask);
+      })
+      .finally(() => {
         setIsUpdating([]);
       });
   };
