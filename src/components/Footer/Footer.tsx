@@ -1,44 +1,34 @@
 import classNames from 'classnames';
 import { Status } from '../../types/Status';
-import { Todo } from '../../types/Todo';
 import { deleteTodo } from '../../api/todos';
 import { errorType } from '../../types/ErrorType';
+import { useTodoContext } from '../../context/TodoProvider';
 
-interface FooterProps {
-  status: Status;
-  handleStatus: (value: Status) => void;
-  completedTodos: Todo[];
-  taskLeft: number;
-  setTasks: React.Dispatch<React.SetStateAction<Todo[]>>;
-  onLoading: (ids: number[]) => void;
-  focusInput: () => void;
-  handleError: (error: string) => void;
-}
-
-export const Footer: React.FC<FooterProps> = ({
-  status,
-  handleStatus,
-  completedTodos,
-  taskLeft,
-  setTasks,
-  onLoading,
-  focusInput,
-  handleError,
-}) => {
+export const Footer: React.FC = () => {
+  const {
+    focusInput,
+    tasks,
+    setTasks,
+    completedTodos,
+    setIsUpdating,
+    setErrorMessage,
+    setStatus,
+    status,
+  } = useTodoContext();
   const clearCompleted = async () => {
-    let updateTasksIds: number[] = [];
+    let updateTasksIds: number[] | [] = [];
 
     await Promise.all(
       completedTodos.map(todo => {
         updateTasksIds = [...updateTasksIds, todo.id];
-        onLoading(updateTasksIds);
+        setIsUpdating(updateTasksIds);
         deleteTodo(todo.id)
           .then(() => {
             setTasks(prevState => prevState.filter(el => el.id !== todo.id));
           })
           .catch(() => {
-            handleError(errorType.deleteTask);
-            onLoading([]);
+            setErrorMessage(errorType.deleteTask);
+            setIsUpdating([]);
           })
           .finally(() => {
             focusInput();
@@ -46,6 +36,8 @@ export const Footer: React.FC<FooterProps> = ({
       }),
     );
   };
+
+  const taskLeft = tasks.length - completedTodos.length;
 
   return (
     <>
@@ -62,7 +54,7 @@ export const Footer: React.FC<FooterProps> = ({
               selected: status === Status.all,
             })}
             data-cy="FilterLinkAll"
-            onClick={() => handleStatus(Status.all)}
+            onClick={() => setStatus(Status.all)}
           >
             All
           </a>
@@ -73,7 +65,7 @@ export const Footer: React.FC<FooterProps> = ({
               selected: status === Status.active,
             })}
             data-cy="FilterLinkActive"
-            onClick={() => handleStatus(Status.active)}
+            onClick={() => setStatus(Status.active)}
           >
             Active
           </a>
@@ -84,7 +76,7 @@ export const Footer: React.FC<FooterProps> = ({
               selected: status === Status.completed,
             })}
             data-cy="FilterLinkCompleted"
-            onClick={() => handleStatus(Status.completed)}
+            onClick={() => setStatus(Status.completed)}
           >
             Completed
           </a>

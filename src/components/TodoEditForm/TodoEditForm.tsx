@@ -1,132 +1,140 @@
-// import { errorType } from '../../types/ErrorType';
-// import { Todo } from '../../types/Todo';
+import { LegacyRef } from 'react';
+import { updateTitleTodo } from '../../api/todos';
+import { errorType } from '../../types/ErrorType';
+import { Todo } from '../../types/Todo';
+import { useTodoContext } from '../../context/TodoProvider';
 
-// type Props = {
-//   handleError: (error: string) => void;
-//   tasks: Todo[];
-//   onNewTasks: (tasks: Todo[]) => void;
-//   onLoading: (ids: number[]) => void;
-//   handleIsSubmitting: (isSubmitting: boolean) => void;
-// };
-// export const TodoEditForm = ({
-//   handleError,
-//   tasks,
-//   onNewTasks,
-//   onLoading,
-//   handleIsSubmitting,
-// }: Props) => {
-//   const updateNewTitle = (id: number, newTitl: string) => {
-//     const updateTitle = newTitl.trim();
-//     const todoToUpdate = tasks.find(todo => todo.id === id);
+type Props = {
+  tasks: Todo[];
+  setCanEdit: (canEdit: boolean) => void;
+  setNewTitle: (newTitle: string) => void;
+  newTitle: string;
+  deleteTask: (id: number) => void;
+  taskId: number;
+  editRef: LegacyRef<HTMLInputElement>;
+};
+export const TodoEditForm = ({
+  tasks,
+  setCanEdit,
+  setNewTitle,
+  newTitle,
+  deleteTask,
+  taskId,
+  // editRef,
+}: Props) => {
+  const { setErrorMessage, setIsUpdating, setIsSubmitting, setTasks } =
+    useTodoContext();
+  const updateNewTitle = (id: number, newTitl: string) => {
+    const updateTitle = newTitl.trim();
+    const todoToUpdate = tasks.find(todo => todo.id === id);
 
-//     if (!todoToUpdate) {
-//       handleError(errorType.found);
+    if (!todoToUpdate) {
+      setErrorMessage(errorType.found);
 
-//       return;
-//     }
+      return;
+    }
 
-//     if (todoToUpdate.title === updateTitle) {
-//       return;
-//     }
+    if (todoToUpdate.title === updateTitle) {
+      return;
+    }
 
-//     const updatedTodo = { ...todoToUpdate, title: updateTitle };
+    const updatedTodo = { ...todoToUpdate, title: updateTitle };
 
-//     const updatedTasks = tasks.map(todo =>
-//       todo.id === id ? updatedTodo : todo,
-//     );
+    const updatedTasks = tasks.map(todo =>
+      todo.id === id ? updatedTodo : todo,
+    );
 
-//     if (newTitle.trim() === '') {
-//       deleteTask(id);
-//     }
+    if (newTitle.trim() === '') {
+      deleteTask(id);
+    }
 
-//     updateTitleTodo(id, updatedTodo)
-//       .then(() => {
-//         onNewTasks(updatedTasks);
-//         onLoading([]);
-//         setCanEdit(false);
-//       })
-//       .catch(() => {
-//         handleError(errorType.updateTodo);
+    updateTitleTodo(id, updatedTodo)
+      .then(() => {
+        setTasks(updatedTasks);
+        setIsUpdating([]);
+        setCanEdit(false);
+      })
+      .catch(() => {
+        setErrorMessage(errorType.updateTodo);
 
-//         setCanEdit(true);
-//         editRef.current = id;
-//         const revertedTasks = tasks.map(todo =>
-//           todo.id === id ? { ...todo, title: todoToUpdate.title } : todo,
-//         );
+        setCanEdit(true);
+        const revertedTasks = tasks.map(todo =>
+          todo.id === id ? { ...todo, title: todoToUpdate.title } : todo,
+        );
 
-//         onNewTasks(revertedTasks);
+        setTasks(revertedTasks);
 
-//         onLoading([]);
-//       });
-//     handleIsSubmitting(false);
-//   };
+        setIsUpdating([]);
+      });
+    setIsSubmitting(false);
+  };
 
-//   const handleSubmitNewTitle = (id: number, title: string) => {
-//     const originalTodo = tasks.find(todo => todo.id === id);
+  const handleSubmitNewTitle = (id: number, title: string) => {
+    const originalTodo = tasks.find(todo => todo.id === id);
 
-//     if (!originalTodo) {
-//       handleError(errorType.found);
+    if (!originalTodo) {
+      setErrorMessage(errorType.found);
 
-//       return;
-//     }
+      return;
+    }
 
-//     const trimmedTitle = title.trim();
+    const trimmedTitle = title.trim();
 
-//     if (originalTodo.title === trimmedTitle) {
-//       return;
-//     }
+    if (originalTodo.title === trimmedTitle) {
+      return;
+    }
 
-//     if (!trimmedTitle) {
-//       deleteTask(id);
-//       handleIsSubmitting(false);
+    if (!trimmedTitle) {
+      deleteTask(id);
+      setIsSubmitting(false);
 
-//       return;
-//     }
+      return;
+    }
 
-//     handleIsSubmitting(true);
-//     onLoading([id]);
-//     updateNewTitle(id, trimmedTitle);
-//   };
+    setIsSubmitting(true);
+    setIsUpdating([id]);
+    updateNewTitle(id, trimmedTitle);
+  };
 
-//   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-//     setNewTitle((e.target as HTMLInputElement).value);
-//   };
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewTitle((e.target as HTMLInputElement).value);
+  };
 
-//   const sendTitle = (id: number) => {
-//     handleSubmitNewTitle(id, newTitle);
-//     setCanEdit(false);
-//   };
+  const sendTitle = (id: number) => {
+    handleSubmitNewTitle(id, newTitle);
+    setCanEdit(false);
+  };
 
-//   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-//     if (e.key === 'Escape') {
-//       setCanEdit(false);
-//     }
-//   };
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      setCanEdit(false);
+    }
+  };
 
-//   return (
-//     <form
-//       key={id}
-//       onSubmit={e => {
-//         e.preventDefault();
-//         sendTitle(id);
-//       }}
-//       onBlur={e => {
-//         e.preventDefault();
-//         sendTitle(id);
-//       }}
-//     >
-//       <input
-//         data-cy="TodoTitleField"
-//         type="text"
-//         className="todo__title-field"
-//         placeholder="Empty todo will be deleted"
-//         value={newTitle}
-//         onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-//           handleTitleChange(e)
-//         }
-//         autoFocus={true}
-//         onKeyDown={handleKeyDown}
-//       />
-//     </form>
-//   );
-// };
+  return (
+    <form
+      key={taskId}
+      onSubmit={e => {
+        e.preventDefault();
+        sendTitle(taskId);
+      }}
+      onBlur={e => {
+        e.preventDefault();
+        sendTitle(taskId);
+      }}
+    >
+      <input
+        data-cy="TodoTitleField"
+        type="text"
+        className="todo__title-field"
+        placeholder="Empty todo will be deleted"
+        value={newTitle}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          handleTitleChange(e)
+        }
+        autoFocus={true}
+        onKeyDown={handleKeyDown}
+      />
+    </form>
+  );
+};

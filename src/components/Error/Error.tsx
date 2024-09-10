@@ -1,11 +1,9 @@
 import classNames from 'classnames';
+import { useTodoContext } from '../../context/TodoProvider';
 
-type Props = {
-  errorMessage: string;
-  OnErrorClean: () => void;
-};
+export const Errors = () => {
+  const { errorMessage, setErrorMessage } = useTodoContext();
 
-export const Errors = ({ errorMessage, OnErrorClean }: Props) => {
   return (
     <div
       data-cy="ErrorNotification"
@@ -21,7 +19,7 @@ export const Errors = ({ errorMessage, OnErrorClean }: Props) => {
         data-cy="HideErrorButton"
         type="button"
         className="delete"
-        onClick={OnErrorClean}
+        onClick={() => setErrorMessage('')}
       />
       {errorMessage}
     </div>

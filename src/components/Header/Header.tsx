@@ -1,54 +1,45 @@
 import { errorType } from '../../types/ErrorType';
 import classNames from 'classnames';
-import { LegacyRef, useState } from 'react';
+import { useState } from 'react';
 import { addTodo, updateCompletedTodo, USER_ID } from '../../api/todos';
 import { Todo } from '../../types/Todo';
+import { useTodoContext } from '../../context/TodoProvider';
 
 type Props = {
-  inputRef: LegacyRef<HTMLInputElement>;
-  taskCounter: number;
-  handleError: (errorMsg: string) => void;
-  handleTempTodo: (todo: Todo | null) => void;
-  setTasks: (tasks: Todo[]) => void;
-  tasks: Todo[];
-  onFocus: () => void;
-  handleIsSubmitting: (isSubmitting: boolean) => void;
-  isSubmitting: boolean;
-  onLoading: (ids: number[]) => void;
   completedTodos: Todo[];
 };
 
-export const ToDoHeader = ({
-  inputRef,
-  taskCounter,
-  handleError,
-  handleTempTodo,
-  setTasks,
-  tasks,
-  onFocus,
-  handleIsSubmitting,
-  onLoading,
-  completedTodos,
-  isSubmitting,
-}: Props) => {
+export const ToDoHeader = ({ completedTodos }: Props) => {
+  const {
+    tasks,
+    setTasks,
+    focusInput,
+    setErrorMessage,
+    setTempTodo,
+    setIsUpdating,
+    isSubmitting,
+    setIsSubmitting,
+    inputRef,
+  } = useTodoContext();
   const [taskTitle, setTaskTitle] = useState('');
   const areTasksDone = tasks.length === completedTodos.length;
+  const taskCounter = tasks.length;
 
   const addNewTodo = (creatNewTodo: Todo) => {
     addTodo(creatNewTodo)
       .then(response => {
         setTasks([...tasks, response]);
         setTaskTitle('');
-        handleTempTodo(null);
+        setTempTodo(null);
       })
       .catch(() => {
-        handleError(errorType.add);
-        handleTempTodo(null);
+        setErrorMessage(errorType.add);
+        setTempTodo(null);
       })
       .finally(() => {
-        handleIsSubmitting(false);
-        onLoading([]);
-        onFocus();
+        setIsSubmitting(false);
+        setIsUpdating([]);
+        focusInput();
       });
   };
 
@@ -57,7 +48,7 @@ export const ToDoHeader = ({
     const title = taskTitle.trim();
 
     if (!title) {
-      handleError(errorType.empty);
+      setErrorMessage(errorType.empty);
 
       return;
     }
@@ -69,9 +60,9 @@ export const ToDoHeader = ({
       id: 0,
     };
 
-    handleIsSubmitting(true);
-    onLoading([newTodo.id]);
-    handleTempTodo({
+    setIsSubmitting(true);
+    setIsUpdating([newTodo.id]);
+    setTempTodo({
       title: title,
       userId: USER_ID,
       completed: false,
@@ -89,7 +80,7 @@ export const ToDoHeader = ({
       await Promise.all(
         tasksToUpdate.map(task => {
           updateTasksIds = [...updateTasksIds, task.id];
-          onLoading(updateTasksIds);
+          setIsUpdating(updateTasksIds);
           updateCompletedTodo(task.id, { ...task, completed: true })
             .then(() => {
               setTasks(
@@ -100,10 +91,10 @@ export const ToDoHeader = ({
               );
             })
             .catch(() => {
-              handleError(errorType.updateTodo);
+              setErrorMessage(errorType.updateTodo);
             })
             .finally(() => {
-              onLoading([]);
+              setIsUpdating([]);
             });
         }),
       );
@@ -111,7 +102,7 @@ export const ToDoHeader = ({
       await Promise.all(
         tasks.map(task => {
           updateTasksIds = [...updateTasksIds, task.id];
-          onLoading(updateTasksIds);
+          setIsUpdating(updateTasksIds);
           updateCompletedTodo(task.id, { ...task, completed: false })
             .then(() => {
               setTasks(
@@ -122,10 +113,10 @@ export const ToDoHeader = ({
               );
             })
             .catch(() => {
-              handleError(errorType.updateTodo);
+              setErrorMessage(errorType.updateTodo);
             })
             .finally(() => {
-              onLoading([]);
+              setIsUpdating([]);
             });
         }),
       );
