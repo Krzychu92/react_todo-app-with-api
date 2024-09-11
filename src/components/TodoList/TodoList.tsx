@@ -8,7 +8,7 @@ import { TempTodo } from '../TempTodo/TempTodo';
 import { TodoEditForm } from '../TodoEditForm/TodoEditForm';
 import { useTodoContext } from '../../context/TodoProvider';
 import { TodoLoader } from '../TodoLoader/TodoLoader';
-
+//
 export const TodoList = () => {
   const {
     focusInput,
@@ -27,7 +27,7 @@ export const TodoList = () => {
     setIsUpdating([id]);
     deleteTodo(id)
       .then(() => {
-        if (editMode.length >= 0) {
+        if (editMode.length > 0) {
           setEditMode([]);
         }
 
@@ -37,11 +37,13 @@ export const TodoList = () => {
         focusInput();
       })
       .catch(() => {
-        if (editMode.length >= 0) {
+        if (editMode.length > 0) {
           setEditMode([id]);
         }
 
         setErrorMessage(errorType.deleteTask);
+      })
+      .finally(() => {
         setIsUpdating([]);
       });
   };
