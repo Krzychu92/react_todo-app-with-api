@@ -3,7 +3,7 @@ import { updateTitleTodo } from '../../api/todos';
 import { errorType } from '../../types/ErrorType';
 import { Todo } from '../../types/Todo';
 import { useTodoContext } from '../../context/TodoProvider';
-
+//
 type Props = {
   tasks: Todo[];
   setCanEdit: (canEdit: number[]) => void;
