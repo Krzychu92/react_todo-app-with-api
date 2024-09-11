@@ -18,22 +18,21 @@ export const TodoList = () => {
     setErrorMessage,
     setIsUpdating,
     status,
+    isUpdating,
   } = useTodoContext();
   const [newTitle, setNewTitle] = useState('');
   const [editMode, setEditMode] = useState<number[]>([]);
   const editRef = useRef<HTMLInputElement>(null);
 
   const deleteTask = (id: number) => {
-    setIsUpdating([id]);
+    setIsUpdating([...isUpdating, id]);
     deleteTodo(id)
       .then(() => {
         if (editMode.length > 0) {
           setEditMode([]);
         }
 
-        const updatedTasks = tasks.filter(todo => todo.id !== id);
-
-        setTasks(updatedTasks);
+        setTasks(prevTasks => prevTasks.filter(todo => todo.id !== id));
         focusInput();
       })
       .catch(() => {
@@ -68,7 +67,7 @@ export const TodoList = () => {
   const filteredTodos = filterTodo(tasks, status);
 
   const handleCompleted = (id: number) => {
-    setIsUpdating([id]);
+    setIsUpdating([...isUpdating, id]);
     const todoToUpdate = tasks.find(todo => todo.id === id);
 
     if (!todoToUpdate) {
@@ -82,11 +81,11 @@ export const TodoList = () => {
       completed: !todoToUpdate.completed,
     })
       .then(() => {
-        const updatedTasks = tasks.map(todo =>
-          todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+        setTasks(prevTasks =>
+          prevTasks.map(todo =>
+            todo.id === id ? { ...todo, completed: !todo.completed } : todo,
+          ),
         );
-
-        setTasks(updatedTasks);
         setIsUpdating([]);
       })
       .catch(() => {
