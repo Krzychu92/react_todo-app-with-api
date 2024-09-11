@@ -33,6 +33,7 @@ export const TodoList = () => {
         }
 
         setTasks(prevTasks => prevTasks.filter(todo => todo.id !== id));
+        setIsUpdating(prevState => prevState.filter(taskId => taskId !== id));
         focusInput();
       })
       .catch(() => {
@@ -41,9 +42,6 @@ export const TodoList = () => {
         }
 
         setErrorMessage(errorType.deleteTask);
-      })
-      .finally(() => {
-        setIsUpdating([]);
       });
   };
 
@@ -86,7 +84,8 @@ export const TodoList = () => {
             todo.id === id ? { ...todo, completed: !todo.completed } : todo,
           ),
         );
-        setIsUpdating([]);
+        setIsUpdating(prevState => prevState.filter(taskId => taskId !== id));
+        // setIsUpdating([]);
       })
       .catch(() => {
         setErrorMessage(errorType.updateTodo);

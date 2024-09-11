@@ -21,7 +21,7 @@ type TodoContextType = {
   tempTodo: Todo | null;
   setTempTodo: React.Dispatch<React.SetStateAction<Todo | null>>;
   isUpdating: number[];
-  setIsUpdating: (id: number[]) => void;
+  setIsUpdating: React.Dispatch<React.SetStateAction<number[]>>;
   isSubmitting: boolean;
   setIsSubmitting: (isSubmitting: boolean) => void;
   inputRef: React.RefObject<HTMLInputElement>;
