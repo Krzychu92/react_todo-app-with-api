@@ -65,17 +65,6 @@ export const TodoProvider: React.FC<TodoProviderProps> = ({ children }) => {
   }, [errorMessage]);
 
   const completedTodos = tasks?.filter(todo => todo.completed);
-  // const onNewTasks = (newTasks: Todo[]) => {
-  //   setTasks(newTasks);
-  // };
-
-  // const onLoading = (ids: number[]) => {
-  //   setOnUpdate(ids);
-  // };
-
-  // const handleIsSubmitting = (submitting: boolean) => {
-  //   setIsSubmitting(submitting);
-  // };
 
   return (
     <TodoContext.Provider
